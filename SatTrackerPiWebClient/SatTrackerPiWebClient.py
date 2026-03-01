@@ -41,55 +41,43 @@ class SatTrackerPiWebClient:
         with open(self.config_file_serial, 'r') as f:
             config_dict = json.load(f)
             self.serial_port_name = config_dict['SERIAL_PORT_NAME']
-        
+
         logging.info("Serial Port Output Set to: " + str(self.serial_port_name))
 
-        self._timer     = None
-        self.is_running = False
-        self.start_time = time.time()
-       
+        self.serial_port = serial.Serial(str(self.serial_port_name), self.speed_serial, rtscts=True,dsrdtr=True, timeout=None)
+        logging.info("Serial port " + str(self.serial_port_name) + " opened.")
 
     def __del__(self):
         logging.info("Destructing Web Client, Stopping Client Loop")
-        #self.scheduler.cancel(self.client_loop_event)
-        
-        
+        if self.serial_port and self.serial_port.is_open:
+            self.serial_port.close()
+            logging.info("Serial port closed.")
+
     def start_client_loop(self):
         try:
-            logging.info("Initializing Timer With Interval: "+str(self.interval))
-            self.scheduler = sched.scheduler(time.time, time.sleep)
-
-            # sync up with system clock
-            loop_start_interval = float(self.interval - (time.time() % self.interval))
-            self.client_loop_event = self.scheduler.enter(loop_start_interval, 1, self._execute_client_loop, ())
             logging.info("Starting Client Loop With Interval: "+str(self.interval))
-            self.scheduler.run()
-        except Exception as exception:
-            return self.handle_exception(exception)
+            while True:
+                start_time = time.time()
+                logging.debug("Starting Client Loop Interval." )
 
-    def _execute_client_loop(self):
-        try:
-            logging.debug("Starting Client Loop Interval." )
-            self.start_time = time.time()
+                logging.debug("Posting Rotator Status" )
+                self.post_rotator_status()
 
-            logging.debug("Posting Rotator Status" )
-            self.post_rotator_status()
+                logging.debug("Executing Client Commands" )
+                self.execute_client_commands()
 
-            logging.debug("Executing Client Commands" )
-            self.execute_client_commands()
+                logging.debug("Executing Polarity Tracking" )
+                if(self.polarity_is_tracking):
+                    self.execute_polarity_tracking()
 
-            logging.debug("Executing Polarity Tracking" )
-            if(self.polarity_is_tracking):
-                self.execute_polarity_tracking()
+                run_time = time.time() - start_time
+                sleep_time = self.interval - run_time
+                if sleep_time > 0:
+                    logging.debug(f"Loop finished in {run_time:.2f}s, sleeping for {sleep_time:.2f}s.")
+                    time.sleep(sleep_time)
+                else:
+                    logging.warning(f"Loop took {run_time:.2f}s, which is longer than the interval of {self.interval}s.")
 
-            logging.info("Calculating Time" )
-            current_time = time.time()
-            run_time = current_time - self.start_time
-            interval_next = float(self.interval - (run_time % self.interval ))
-            start_time_next = float(time.time()+ interval_next)
-            logging.debug("Start Time: "+str(self.start_time)+", Run Time:" + str(run_time)+ "End Time: "+ str(current_time))
-            logging.debug("Interval Until Next Start Time:"+ str(interval_next) +", Next Start Time: "+ str(start_time_next))
-            self.scheduler.enter(interval_next, 1, self._execute_client_loop, ())
         except Exception as exception:
             return self.handle_exception(exception)
 
@@ -275,20 +263,19 @@ class SatTrackerPiWebClient:
 
         try:
             #self.serial_lock.acquire()
-            serial_response = ""
-            serial_port = serial.Serial(str(self.serial_port_name), self.speed_serial, rtscts=True,dsrdtr=True, timeout=serial_timeout) 
+            serial_response = "" 
             logging.debug("User: " + str(pwd.getpwuid(os.getuid()).pw_name) + " is about to Send Serial Command: "+str(serial_command)+" to: "+ str(self.serial_port_name) )
 
             # Send Command
             serial_command += "\n"
-            serial_port.write(serial_command.encode())
+            self.serial_port.write(serial_command.encode())
 
             # If TimeOut Is 0 Then Return Immediately, Otherwise Wait For a Response to Arrive On the Serial Port
             if(0 == serial_timeout):
                 serial_response = 0
             else:
-                bytes_carraigereturn = bytes("\r")
-                bytes_linefeed = bytes("\n")  
+                # The serial port timeout is now handled by the serial.Serial constructor
+                serial_response = self.serial_port.readline().decode('utf-8').strip()
                 characters_recieved = ""
                 continue_reading=True
                 while continue_reading:
@@ -306,8 +293,6 @@ class SatTrackerPiWebClient:
                 serial_response = characters_recieved
                 logging.debug("User: " + str(pwd.getpwuid(os.getuid()).pw_name) + " Received Serial Response: "+str(serial_response)+" to: "+ str(self.serial_port_name) )
 
-            #Close Port, Return Result
-            serial_port.close()
             return serial_response
 
         except serial.SerialException as e:

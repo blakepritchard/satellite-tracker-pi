@@ -1,5 +1,4 @@
-#!/usr/local/bin/python2.7
-# encoding: utf-8
+#!/usr/bin/env python3
 '''
 SatTrackerPiDaemon.SatTrackerPiDaemon -- Raspbian Serial Client for GPredict and RotCtlD Antenna Rotator Control 
 
@@ -163,14 +162,14 @@ USAGE
                     serial_port_rotctl.write(rotator_response)
                     command_rotctl = ""  
                 elif '!'==char_next_rotctl:
-                    logging.info('!'),
+                    logging.info('!')
                     print_newline = True 
                 else:
                     command_rotctl += char_next_rotctl
                     if print_newline:
                         print_newline = False
                     
-                char_next_rotctl = ''
+                char_next_rotctl = '' # type: ignore
                 byte_next_rotctl = 0
 
             # Read website port
@@ -186,14 +185,14 @@ USAGE
                     serial_port_website.write(str(website_response) + "\n")
                     command_website = ""  
                 elif '!'==char_next_website:
-                    logging.debug('!'),
+                    logging.debug('!')
                     print_newline = True 
                 else:
                     command_website += char_next_website
                     if print_newline:
                         print_newline = False
                     
-                char_next_website = ''
+                char_next_website = '' # type: ignore
                 byte_next_website = 0
 
     except KeyboardInterrupt:
@@ -206,16 +205,16 @@ USAGE
         logging.critical(exc_type, fname, exc_tb.tb_lineno)
         logging.critical(e)
         sys.stderr.write(program_name + ": " + repr(e) + "\n")
-        print(exc_type, fname, exc_tb.tb_lineno)
-        print(e)
+        print(exc_type, fname, exc_tb.tb_lineno) # type: ignore
+        print(e) # type: ignore
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
         logging.critical(exc_type, fname, exc_tb.tb_lineno)
         logging.critical(e)
-        print(exc_type, fname, exc_tb.tb_lineno)
-        print(e)
+        print(exc_type, fname, exc_tb.tb_lineno) # type: ignore
+        print(e) # type: ignore
         
         if DEBUG or TESTRUN:
             raise(e)
@@ -243,4 +242,3 @@ if __name__ == "__main__":
         statsfile.close()
         sys.exit(0)
     sys.exit(main())
-
