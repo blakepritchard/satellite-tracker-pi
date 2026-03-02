@@ -1,6 +1,8 @@
 # SatTrackerPi: 3-Axis Telemetry & Edge Compute
 
-**Watch the live hardware demonstration here:** [SatTrackerPi Overview & Demo](https://www.youtube.com/watch?v=HFVWX1Un5f8&pp=0gcJCb4KAYcqIYzv)
+**Watch the live hardware demonstration here:** 
+
+[SatTrackerPi Overview & Demo](https://www.youtube.com/watch?v=HFVWX1Un5f8&pp=0gcJCb4KAYcqIYzv)
 
 ## Overview
 This repository contains the edge-compute orchestration layer for an automated 3-axis (Azimuth, Elevation, Polarity) satellite tracking antenna rotator. It bridges the gap between digital orbital prediction algorithms and deterministic physical hardware actuation. 
@@ -16,3 +18,15 @@ This system acts as a localized SCADA controller on the edge (Raspberry Pi). It 
 ## Tech Stack
 * **Hardware:** Raspberry Pi, Adafruit Stepper Motor HATs, NEMA Stepper Motors.
 * **Software:** Python 3, Bash, HTML/JS (Web Client), EasyComm II Protocol.
+
+<hr>
+* ## Hardware-in-the-Loop (HITL) Bench Testing
+
+**Watch the real-time IT/OT translation test here:**  
+
+[SatTrackerPi Bench Test](https://www.youtube.com/watch?v=2fm24Qgct3Q)
+
+Before outdoor deployment, the system was validated using a bare-metal bench test to verify the software abstraction layer. The demonstration above captures the real-time convergence loop:
+1. **Application Layer:** Target selection in the GPredict UI.
+2. **Translation Layer:** The Python daemon parsing the EasyComm II protocol into stepper motor steps (visible in the terminal output).
+3. **Physical Layer:** Deterministic mechanical actuation of the Azimuth and Elevation gears.
