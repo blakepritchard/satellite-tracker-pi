@@ -20,7 +20,8 @@ This system acts as a localized SCADA controller on the edge (Raspberry Pi). It 
 * **Software:** Python 3, Bash, HTML/JS (Web Client), EasyComm II Protocol.
 
 <hr>
-* ## Hardware-in-the-Loop (HITL) Bench Testing
+
+## Hardware-in-the-Loop (HITL) Bench Testing
 
 **Watch the real-time IT/OT translation test here:**  
 
